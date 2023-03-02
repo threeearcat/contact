@@ -107,6 +107,30 @@ getfile() {
   fi
   echo "$file"
 }
+getfiles() {
+  set -e
+  cache="$(getcache)"
+  if [ -n "$1" ]; then
+    ret=$(echo "$cache" | fzf -f "$1")
+  else
+    ret=$(echo "$cache")
+  fi
+  files=""
+  while read -r line; do
+    file=$(echo $line | cut -d":" -f1)
+    if [ ! -f "$file" ]; then
+		continue
+	fi
+    files+="$file\n"
+  done <<< "$ret"
+  echo -e "$files"
+}
+getsummary(){
+  set -e
+  name=$(getprop "$1" "name")
+  mails=$(getprop "$1" "email")
+  echo "$mails\t$name\n"
+}
 edit() {
   file="$1"
   if [ -n "$EDITOR" ]; then
@@ -296,6 +320,13 @@ elif [ "$command" = "getfiltered" ]; then
   file=$(getfile)
   property=$(getprop "$file" "" "$2")
   echo "$property"
+elif [ "$command" = "query" ]; then
+  files=$(getfiles "$2")
+  summary="\n"
+  while read -r file; do
+    summary+=$(getsummary $file)
+  done <<< "$files"
+  echo -e "$summary"
 elif [ "$command" = "" ]; then
   file=$(getfile)
   property=$(getprop "$file")
