@@ -126,6 +126,7 @@ rename() {
   file="$1"
   filter "$file"
   name=$(getprop "$file" "name")
+  name=${name// /_}
   if [ -z "$name" ]; then
     error 65
   fi
