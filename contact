@@ -56,6 +56,15 @@ error() {
   echo >&2 "Error: $msg"
   exit $1
 }
+add-contact() {
+  tmp=$(mktemp)
+  name=$1
+  email=$2
+  template=$(echo "$template" | sed -e "s/{NAME}/$name/g")
+  template=$(echo "$template" | sed -e "s/{EMAIL}/$email/g")
+  echo "$template" > "$tmp"
+  edit "$tmp"
+}
 rebuild() {
   check-files
   files=$(for f in *; do printf "%s: %s\n" "$f" "$(sed ':a;N;$!ba;s/\n/; /g' "$f")"; done)
@@ -275,8 +284,8 @@ vcf-export() {
     echo -ne $out
   done
 }
-template="name=
-email=
+template="name={NAME}
+email={EMAIL}
 mobile="
 
 set -e
@@ -285,9 +294,7 @@ mkdir -p "$cdir"
 cd "$cdir"
 command="$1"
 if [ "$command" = "add" ]; then
-  tmp=$(mktemp)
-  echo "$template" > "$tmp"
-  edit "$tmp"
+  add-contact
 elif [ "$command" = "edit" ]; then
   file=$(getfile "$2")
   edit "$cdir/$file"
@@ -327,6 +334,14 @@ elif [ "$command" = "query" ]; then
     summary+=$(getsummary $file)
   done <<< "$files"
   echo -e "$summary"
+elif [ "$command = read-pipe" ]; then
+  while read -r x; do
+    case $x in From*)
+      name=$(echo $x | sed 's/From: \(.*\) <.*>$/\1/')
+      email=$(echo $x | sed 's/From: .* <\(.*\)>$/\1/')
+      add-contact "$name" "$email"
+    esac
+  done
 elif [ "$command" = "" ]; then
   file=$(getfile)
   property=$(getprop "$file")
