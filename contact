@@ -350,7 +350,7 @@ elif [ "$command" = "query" ]; then
     summary+=$(getsummary $file)
   done <<< "$files"
   echo -e "$summary"
-elif [ "$command = read-pipe" ]; then
+elif [ "$command" = "read-pipe" ]; then
   while read -r x; do
     case $x in From*)
       name=$(echo $x | sed 's/From: \([^<]*\).*/\1/')
