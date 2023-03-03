@@ -75,11 +75,12 @@ replace-template() {
 add-contact() {
   set -e
   tmp=$(mktemp)
-  name=$1
-  email=$2
+  template=$1
+  name=$2
+  email=$3
   template=$(replace-template "$template" "NAME" $name)
   template=$(replace-template "$template" "EMAIL" $email)
-  echo "$template" > "$tmp"
+  echo -e "$template" > "$tmp"
   edit "$tmp"
 }
 rebuild() {
@@ -301,9 +302,7 @@ vcf-export() {
     echo -ne $out
   done
 }
-template="name={NAME}
-email={EMAIL}
-mobile="
+template="name={NAME}\nemail={EMAIL}\nmobile="
 
 set -e
 cdir="$HOME"/.contacts
@@ -311,7 +310,7 @@ mkdir -p "$cdir"
 cd "$cdir"
 command="$1"
 if [ "$command" = "add" ]; then
-  add-contact
+  add-contact "$template"
 elif [ "$command" = "edit" ]; then
   file=$(getfile "$2")
   edit "$cdir/$file"
@@ -360,7 +359,7 @@ elif [ "$command = read-pipe" ]; then
 	  else
 		  email=$name
 	  fi
-      add-contact "$name" "$email"
+      add-contact "$template" "$name" "$email"
     esac
   done
 elif [ "$command" = "" ]; then
