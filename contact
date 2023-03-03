@@ -56,12 +56,29 @@ error() {
   echo >&2 "Error: $msg"
   exit $1
 }
+decode() {
+  dir="$(dirname -- "${BASH_SOURCE[0]}";)"
+  s=$1
+  case $s in
+  =?*)
+    echo $s | $dir/decode.py ;;
+  *)
+    echo $s ;;
+  esac
+}
+replace-template() {
+  template=$1
+  target=$2
+  replace=$(decode "$3")
+  echo $template | sed -e "s/{$target}/$replace/g"
+}
 add-contact() {
+  set -e
   tmp=$(mktemp)
   name=$1
   email=$2
-  template=$(echo "$template" | sed -e "s/{NAME}/$name/g")
-  template=$(echo "$template" | sed -e "s/{EMAIL}/$email/g")
+  template=$(replace-template "$template" "NAME" $name)
+  template=$(replace-template "$template" "EMAIL" $email)
   echo "$template" > "$tmp"
   edit "$tmp"
 }
