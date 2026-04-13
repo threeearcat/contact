@@ -351,22 +351,47 @@ elif [ "$command" = "query" ]; then
   done <<< "$files"
   echo -e "$summary"
 elif [ "$command" = "read-pipe" ] || [ "$command" = "read-pipe-to" ]; then
-  if [ "$command" = "read-pipe" ]; then
-    header="From"
-  else
+  my_addresses="threeearcat@gmail.com dae.r.jeong@snu.ac.kr"
+  if [ "$command" = "read-pipe-to" ]; then
     header="To"
+  else
+    header="auto"
   fi
+  from_name="" from_email="" to_name="" to_email=""
   while read -r x; do
-    case $x in ${header}:*)
-      name=$(echo $x | sed "s/${header}: \([^<]*\).*/\1/")
-	  if echo $x | grep "<.*>"; then
-		  email=$(echo $x | sed "s/${header}: .*<\(.*\)>$/\1/")
-	  else
-		  email=$name
-	  fi
-      add-contact "$template" "$name" "$email"
+    case $x in
+      From:*)
+        from_name=$(echo $x | sed 's/From: \([^<]*\).*/\1/')
+        if echo $x | grep -q "<.*>"; then
+          from_email=$(echo $x | sed 's/From: .*<\(.*\)>$/\1/')
+        else
+          from_email=$from_name
+        fi
+        ;;
+      To:*)
+        to_name=$(echo $x | sed 's/To: \([^<]*\).*/\1/')
+        if echo $x | grep -q "<.*>"; then
+          to_email=$(echo $x | sed 's/To: .*<\(.*\)>$/\1/')
+        else
+          to_email=$to_name
+        fi
+        ;;
     esac
   done
+  if [ "$header" = "auto" ]; then
+    is_me=false
+    for addr in $my_addresses; do
+      [ "$from_email" = "$addr" ] && is_me=true
+    done
+    if $is_me; then
+      name=$to_name email=$to_email
+    else
+      name=$from_name email=$from_email
+    fi
+  else
+    name=$to_name email=$to_email
+  fi
+  [ -n "$email" ] && add-contact "$template" "$name" "$email"
 elif [ "$command" = "" ]; then
   file=$(getfile)
   property=$(getprop "$file")
