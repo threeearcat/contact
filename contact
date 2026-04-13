@@ -350,12 +350,17 @@ elif [ "$command" = "query" ]; then
     summary+=$(getsummary $file)
   done <<< "$files"
   echo -e "$summary"
-elif [ "$command" = "read-pipe" ]; then
+elif [ "$command" = "read-pipe" ] || [ "$command" = "read-pipe-to" ]; then
+  if [ "$command" = "read-pipe" ]; then
+    header="From"
+  else
+    header="To"
+  fi
   while read -r x; do
-    case $x in From*)
-      name=$(echo $x | sed 's/From: \([^<]*\).*/\1/')
+    case $x in ${header}:*)
+      name=$(echo $x | sed "s/${header}: \([^<]*\).*/\1/")
 	  if echo $x | grep "<.*>"; then
-		  email=$(echo $x | sed 's/From: .*<\(.*\)>$/\1/')
+		  email=$(echo $x | sed "s/${header}: .*<\(.*\)>$/\1/")
 	  else
 		  email=$name
 	  fi
