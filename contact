@@ -217,7 +217,10 @@ mutt-aliases() {
     mails=$(getprop "$f" "email")
     if [ -n "$mails" ]; then
       count=0
-      echo "$mails" | while read mail; do
+      echo "$mails" | tr ',' '\n' | while read mail; do
+        mail="${mail## }"
+        mail="${mail%% }"
+        [ -z "$mail" ] && continue
         nick=$(getprop "$f" "nick")
         if [ -z "$nick" ]; then
           nick="$name"
