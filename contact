@@ -78,8 +78,8 @@ add-contact() {
   template=$1
   name=$2
   email=$3
-  template=$(replace-template "$template" "NAME" $name)
-  template=$(replace-template "$template" "EMAIL" $email)
+  template=$(replace-template "$template" "NAME" "$name")
+  template=$(replace-template "$template" "EMAIL" "$email")
   echo -e "$template" > "$tmp"
   edit "$tmp"
 }
